@@ -81,7 +81,7 @@ func (as *ArticleStore) CreateArticle(a *model.Article) error {
 
 func (as *ArticleStore) UpdateArticle(a *model.Article, tagList []string) error {
 	tx := as.db.Begin()
-	if err := tx.Model(a).Update(a).Error; err != nil {
+	if err := tx.Model(a).Updates(a).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -100,7 +100,7 @@ func (as *ArticleStore) UpdateArticle(a *model.Article, tagList []string) error 
 		tags = append(tags, tag)
 	}
 
-	if err := tx.Model(a).Association("Tags").Replace(tags).Error; err != nil {
+	if err := tx.Model(a).Association("Tags").Replace(tags); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -117,10 +117,10 @@ func (as *ArticleStore) DeleteArticle(a *model.Article) error {
 	return as.db.Delete(a).Error
 }
 
-func (as *ArticleStore) List(offset, limit int) ([]model.Article, int, error) {
+func (as *ArticleStore) List(offset, limit int) ([]model.Article, int64, error) {
 	var (
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	as.db.Model(&articles).Count(&count)
@@ -134,11 +134,11 @@ func (as *ArticleStore) List(offset, limit int) ([]model.Article, int, error) {
 	return articles, count, nil
 }
 
-func (as *ArticleStore) ListByTag(tag string, offset, limit int) ([]model.Article, int, error) {
+func (as *ArticleStore) ListByTag(tag string, offset, limit int) ([]model.Article, int64, error) {
 	var (
 		t        model.Tag
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	err := as.db.Where(&model.Tag{Tag: tag}).First(&t).Error
@@ -161,11 +161,11 @@ func (as *ArticleStore) ListByTag(tag string, offset, limit int) ([]model.Articl
 	return articles, count, nil
 }
 
-func (as *ArticleStore) ListByAuthor(username string, offset, limit int) ([]model.Article, int, error) {
+func (as *ArticleStore) ListByAuthor(username string, offset, limit int) ([]model.Article, int64, error) {
 	var (
 		u        model.User
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	err := as.db.Where(&model.User{Username: username}).First(&u).Error
@@ -186,11 +186,11 @@ func (as *ArticleStore) ListByAuthor(username string, offset, limit int) ([]mode
 	return articles, count, nil
 }
 
-func (as *ArticleStore) ListByWhoFavorited(username string, offset, limit int) ([]model.Article, int, error) {
+func (as *ArticleStore) ListByWhoFavorited(username string, offset, limit int) ([]model.Article, int64, error) {
 	var (
 		u        model.User
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	err := as.db.Where(&model.User{Username: username}).First(&u).Error
@@ -213,11 +213,11 @@ func (as *ArticleStore) ListByWhoFavorited(username string, offset, limit int) (
 	return articles, count, nil
 }
 
-func (as *ArticleStore) ListFeed(userID uint, offset, limit int) ([]model.Article, int, error) {
+func (as *ArticleStore) ListFeed(userID uint, offset, limit int) ([]model.Article, int64, error) {
 	var (
 		u        model.User
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	err := as.db.First(&u, userID).Error
@@ -296,14 +296,14 @@ func (as *ArticleStore) AddFavorite(a *model.Article, userID uint) error {
 	usr := model.User{}
 	usr.ID = userID
 
-	return as.db.Model(a).Association("Favorites").Append(&usr).Error
+	return as.db.Model(a).Association("Favorites").Append(&usr)
 }
 
 func (as *ArticleStore) RemoveFavorite(a *model.Article, userID uint) error {
 	usr := model.User{}
 	usr.ID = userID
 
-	return as.db.Model(a).Association("Favorites").Delete(&usr).Error
+	return as.db.Model(a).Association("Favorites").Delete(&usr)
 }
 
 func (as *ArticleStore) ListTags() ([]model.Tag, error) {

@@ -55,7 +55,7 @@ func (h *Handler) GetArticle(c echo.Context) error {
 func (h *Handler) Articles(c echo.Context) error {
 	var (
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	tag := c.QueryParam("tag")
@@ -114,7 +114,7 @@ func (h *Handler) Articles(c echo.Context) error {
 func (h *Handler) Feed(c echo.Context) error {
 	var (
 		articles []model.Article
-		count    int
+		count    int64
 	)
 
 	offset, err := strconv.Atoi(c.QueryParam("offset"))

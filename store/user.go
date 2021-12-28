@@ -1,6 +1,8 @@
 package store
 
 import (
+	"errors"
+
 	"github.com/xesina/golang-echo-realworld-example-app/model"
 	"gorm.io/gorm"
 )
@@ -53,11 +55,11 @@ func (us *UserStore) Create(u *model.User) (err error) {
 }
 
 func (us *UserStore) Update(u *model.User) error {
-	return us.db.Model(u).Update(u).Error
+	return us.db.Model(u).Updates(u).Error
 }
 
 func (us *UserStore) AddFollower(u *model.User, followerID uint) error {
-	return us.db.Model(u).Association("Followers").Append(&model.Follow{FollowerID: followerID, FollowingID: u.ID}).Error
+	return us.db.Model(u).Association("Followers").Append(&model.Follow{FollowerID: followerID, FollowingID: u.ID})
 }
 
 func (us *UserStore) RemoveFollower(u *model.User, followerID uint) error {
@@ -65,7 +67,7 @@ func (us *UserStore) RemoveFollower(u *model.User, followerID uint) error {
 		FollowerID:  followerID,
 		FollowingID: u.ID,
 	}
-	if err := us.db.Model(u).Association("Followers").Find(&f).Error; err != nil {
+	if err := us.db.Model(u).Association("Followers").Find(&f); err != nil {
 		return err
 	}
 	if err := us.db.Delete(f).Error; err != nil {
