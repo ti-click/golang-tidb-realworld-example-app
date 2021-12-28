@@ -1,8 +1,8 @@
 package store
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/xesina/golang-echo-realworld-example-app/model"
+	"gorm.io/gorm"
 )
 
 type UserStore struct {
@@ -18,7 +18,7 @@ func NewUserStore(db *gorm.DB) *UserStore {
 func (us *UserStore) GetByID(id uint) (*model.User, error) {
 	var m model.User
 	if err := us.db.First(&m, id).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -29,7 +29,7 @@ func (us *UserStore) GetByID(id uint) (*model.User, error) {
 func (us *UserStore) GetByEmail(e string) (*model.User, error) {
 	var m model.User
 	if err := us.db.Where(&model.User{Email: e}).First(&m).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -40,7 +40,7 @@ func (us *UserStore) GetByEmail(e string) (*model.User, error) {
 func (us *UserStore) GetByUsername(username string) (*model.User, error) {
 	var m model.User
 	if err := us.db.Where(&model.User{Username: username}).Preload("Followers").First(&m).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -77,7 +77,7 @@ func (us *UserStore) RemoveFollower(u *model.User, followerID uint) error {
 func (us *UserStore) IsFollower(userID, followerID uint) (bool, error) {
 	var f model.Follow
 	if err := us.db.Where("following_id = ? AND follower_id = ?", userID, followerID).Find(&f).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		return false, err

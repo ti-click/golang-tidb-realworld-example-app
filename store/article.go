@@ -1,8 +1,10 @@
 package store
 
 import (
-	"github.com/jinzhu/gorm"
+	"errors"
+
 	"github.com/xesina/golang-echo-realworld-example-app/model"
+	"gorm.io/gorm"
 )
 
 type ArticleStore struct {
@@ -20,7 +22,7 @@ func (as *ArticleStore) GetBySlug(s string) (*model.Article, error) {
 
 	err := as.db.Where(&model.Article{Slug: s}).Preload("Favorites").Preload("Tags").Preload("Author").Find(&m).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
@@ -35,7 +37,7 @@ func (as *ArticleStore) GetUserArticleBySlug(userID uint, slug string) (*model.A
 
 	err := as.db.Where(&model.Article{Slug: slug, AuthorID: userID}).Find(&m).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
@@ -56,12 +58,12 @@ func (as *ArticleStore) CreateArticle(a *model.Article) error {
 
 	for _, t := range a.Tags {
 		err := tx.Where(&model.Tag{Tag: t.Tag}).First(&t).Error
-		if err != nil && !gorm.IsRecordNotFoundError(err) {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			tx.Rollback()
 			return err
 		}
 
-		if err := tx.Model(&a).Association("Tags").Append(t).Error; err != nil {
+		if err := tx.Model(&a).Association("Tags").Append(t); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -90,7 +92,7 @@ func (as *ArticleStore) UpdateArticle(a *model.Article, tagList []string) error 
 		tag := model.Tag{Tag: t}
 
 		err := tx.Where(&tag).First(&tag).Error
-		if err != nil && !gorm.IsRecordNotFoundError(err) {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			tx.Rollback()
 			return err
 		}
@@ -250,7 +252,7 @@ func (as *ArticleStore) ListFeed(userID uint, offset, limit int) ([]model.Articl
 }
 
 func (as *ArticleStore) AddComment(a *model.Article, c *model.Comment) error {
-	err := as.db.Model(a).Association("Comments").Append(c).Error
+	err := as.db.Model(a).Association("Comments").Append(c)
 	if err != nil {
 		return err
 	}
@@ -263,7 +265,7 @@ func (as *ArticleStore) GetCommentsBySlug(slug string) ([]model.Comment, error) 
 	err := as.db.Where(&model.Article{Slug: slug}).Preload("Comments").Preload("Comments.User").First(&m).Error
 
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
@@ -276,7 +278,7 @@ func (as *ArticleStore) GetCommentsBySlug(slug string) ([]model.Comment, error) 
 func (as *ArticleStore) GetCommentByID(id uint) (*model.Comment, error) {
 	var m model.Comment
 	if err := as.db.Where(id).First(&m).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
