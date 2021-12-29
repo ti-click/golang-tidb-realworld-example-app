@@ -7,15 +7,14 @@ import (
 
 	"encoding/json"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/labstack/echo/v4"
-	"github.com/xesina/golang-echo-realworld-example-app/article"
-	"github.com/xesina/golang-echo-realworld-example-app/db"
-	"github.com/xesina/golang-echo-realworld-example-app/model"
-	"github.com/xesina/golang-echo-realworld-example-app/router"
-	"github.com/xesina/golang-echo-realworld-example-app/store"
-	"github.com/xesina/golang-echo-realworld-example-app/user"
+	"github.com/ti-click/golang-tidb-realworld-example-app/article"
+	"github.com/ti-click/golang-tidb-realworld-example-app/db"
+	"github.com/ti-click/golang-tidb-realworld-example-app/model"
+	"github.com/ti-click/golang-tidb-realworld-example-app/router"
+	"github.com/ti-click/golang-tidb-realworld-example-app/store"
+	"github.com/ti-click/golang-tidb-realworld-example-app/user"
+	"gorm.io/gorm"
 )
 
 var (
@@ -48,10 +47,11 @@ func setup() {
 }
 
 func tearDown() {
-	_ = d.Close()
-	if err := db.DropTestDB(); err != nil {
+	sqlDB, _ := d.DB()
+	if err := db.DropTestDB(d); err != nil {
 		log.Fatal(err)
 	}
+	sqlDB.Close()
 }
 
 func responseMap(b []byte, key string) map[string]interface{} {

@@ -3,7 +3,7 @@ package store
 import (
 	"errors"
 
-	"github.com/xesina/golang-echo-realworld-example-app/model"
+	"github.com/ti-click/golang-tidb-realworld-example-app/model"
 	"gorm.io/gorm"
 )
 

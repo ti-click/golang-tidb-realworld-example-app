@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/xesina/golang-echo-realworld-example-app/model"
-	"github.com/xesina/golang-echo-realworld-example-app/utils"
+	"github.com/ti-click/golang-tidb-realworld-example-app/model"
+	"github.com/ti-click/golang-tidb-realworld-example-app/utils"
 )
 
 // GetArticle godoc

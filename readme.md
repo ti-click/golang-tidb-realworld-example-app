@@ -35,19 +35,19 @@ For more info and detailed instructions please check this guide: [Setting GOPATH
 Clone this repository:
 
 ```bash
-➜ git clone https://github.com/xesina/golang-echo-realworld-example-app.git
+➜ git clone https://github.com/ti-click/golang-tidb-realworld-example-app.git
 ```
 
 Or simply use the following command which will handle cloning the repo:
 
 ```bash
-➜ go get -u -v github.com/xesina/golang-echo-realworld-example-app
+➜ go get -u -v github.com/ti-click/golang-tidb-realworld-example-app
 ```
 
 Switch to the repo folder
 
 ```bash
-➜ cd $GOPATH/src/github.com/xesina/golang-echo-realworld-example-app
+➜ cd $GOPATH/src/github.com/ti-click/golang-tidb-realworld-example-app
 ```
 
 ### Install dependencies

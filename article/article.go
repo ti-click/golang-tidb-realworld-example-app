@@ -1,7 +1,7 @@
 package article
 
 import (
-	"github.com/xesina/golang-echo-realworld-example-app/model"
+	"github.com/ti-click/golang-tidb-realworld-example-app/model"
 )
 
 type Store interface {

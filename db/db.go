@@ -2,20 +2,24 @@ package db
 
 import (
 	"fmt"
+	"strings"
 
 	"os"
 
-	"github.com/xesina/golang-echo-realworld-example-app/model"
+	"github.com/ti-click/golang-tidb-realworld-example-app/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 // Database connection infos
 var dbName = "realworld"
-var dbUser = ""
+var dbUser = "root"
 var dbPass = ""
-var dbHost = ""
-var dbPort = ""
+var dbHost = "127.0.0.1"
+var dbPort = "4000"
+
+// test Database
+const TestDBName = "realworld_test"
 
 // load database connection information
 func init() {
@@ -37,8 +41,11 @@ func init() {
 }
 
 func getDSN() string {
-	//if dbUser == "" { }
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+}
+
+func getDSNWithoutDBName() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort)
 }
 
 func getTiDB(dsn string) (db *gorm.DB, err error) {
@@ -59,10 +66,30 @@ func New() *gorm.DB {
 }
 
 func TestDB() *gorm.DB {
+	dbName = TestDBName
 	testDsn := getDSN()
 	db, err := getTiDB(testDsn)
 	if err != nil {
-		fmt.Println("storage err: ", err)
+		if strings.Contains(err.Error(), "Error 1049: Unknown database") {
+			// create database when not found
+			tmpDsn := getDSNWithoutDBName()
+			db, err := getTiDB(tmpDsn)
+			if err != nil {
+				panic("can not connect db without dbname: " + err.Error())
+			}
+			err = db.Exec("create database " + TestDBName).Error
+			if err != nil {
+				panic("can not create database " + err.Error())
+			}
+			sqlDB, _ := db.DB()
+			sqlDB.Close()
+			db, err = getTiDB(testDsn)
+			if err != nil {
+				panic("can not new test database " + err.Error())
+			}
+		} else {
+			panic("storage err: " + err.Error())
+		}
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -71,7 +98,11 @@ func TestDB() *gorm.DB {
 	return db
 }
 
-func DropTestDB() error {
+func DropTestDB(db *gorm.DB) error {
+	err := db.Exec("drop database " + TestDBName).Error
+	if err != nil {
+		panic("can not drop test database")
+	}
 	return nil
 }
 

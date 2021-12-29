@@ -1,4 +1,4 @@
-module github.com/xesina/golang-echo-realworld-example-app
+module github.com/ti-click/golang-tidb-realworld-example-app
 
 go 1.17
 
