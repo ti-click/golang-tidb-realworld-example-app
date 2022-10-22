@@ -1,0 +1,54 @@
+# Commands to start on workspace startup
+image:
+  file: .gitpod.Dockerfile
+
+additionalRepositories:
+  - url: https://github.com/ti-click/vue-realworld-example-app
+    # checkoutLocation is relative to /workspaces
+    checkoutLocation: frontend
+
+tasks:
+
+  # start tidb on local env
+  - name: tiup playground (tidb unistore)
+    command: |
+      mkdir -p $USER/.tiup/data/
+      $HOME/.tiup/components/tidb/v6.1.1/tidb-server -P 4000 --store=unistore --host=127.0.0.1 --status=10080 --log-file=$HOME/.tiup/data/tidb.log
+  # wait tidb start
+  - name: wait for tidb started
+    command: gp ports await 10080 && gp sync-done tidbstarted
+
+  # backend server (API server)
+  - name: backend
+    before: |
+      gp sync-await tidbstarted
+      go mod download
+    command: |
+      DB_USER=root DB_HOST=127.0.0.1 DB_PORT=4000 DB_NAME=test go run main.go
+  # web frontend
+  - name: frontend
+    before: |
+      gp ports await 8585
+      cd ../frontend
+      npm install -g yarn
+      yarn install
+      sed -i -e s/conduit.productionready.io/$(gp url 8000 | sed -e 's/https:\/\///')/ src/common/config.js
+      sed -i -e 's/Token /Bearer /' src/common/api.service.js
+    command: |
+      echo run frontend server
+      echo Please test this url: $(gp url 8080)
+      yarn serve
+# Ports to expose on workspace startup
+ports:
+  - port: 4000
+    onOpen: ignore
+    name: TiDB
+    description: TiDB
+  - port: 8585
+    onOpen: ignore
+    name: backend
+    description: backend
+  - port: 8080
+    onOpen: open-browser
+    name: frontend
+    description: frontend
